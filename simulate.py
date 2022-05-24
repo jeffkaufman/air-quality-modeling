@@ -64,9 +64,9 @@ def simulate(purifier_ach=5,
       air[particle_size] *= 1 - PARTICLE_DECAY_RATES[particle_size]
 
     if should_print:
-      print("%s\t%s\t%.2f" % (
+      print("%s\t%s\t%.6f" % (
         timestep,
-        "\t".join("%.2f" % x for x in air),
+        "\t".join("%.6f" % x for x in air),
         sum(air)))
 
     totals.append(sum(air))
@@ -80,7 +80,7 @@ def simulate_multiple():
     purifier_ach=0,
     ventilation_ach=ventilation_ach,
     duration=duration,
-    purifier_filter='HEPA',
+    purifier_filter='HEPA', # ignored
     should_print=False)
 
   columns = []
@@ -104,12 +104,12 @@ def simulate_multiple():
     rows.append([str(i)])
 
   for i in range(duration):
-    rows[i+1].append("%.2f" % baseline_risk[i])
+    rows[i+1].append("%.6f" % baseline_risk[i])
 
     for j in range(len(columns)):
-      rows[i+1].append("%.2f" % columns[j][i])
+      rows[i+1].append("%.6f" % columns[j][i])
     for j in range(len(columns)):
-      rows[i+1].append("%.2f" % (columns[j][i] / baseline_risk[i]))
+      rows[i+1].append("%.6f" % (columns[j][i] / baseline_risk[i]))
 
   for row in rows:
     print("\t".join(row))
