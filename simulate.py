@@ -32,7 +32,8 @@ def proportion_removed(purifier_cfm, room_size_cf, filtration):
 def simulate(purifier_ach=5,
              ventilation_ach=2,
              duration=60,
-             purifier_filter='MERV-14'):
+             purifier_filter='MERV-14',
+             should_print=True):
   room_size_cf = 1000
   purifier_cfm = room_size_cf / 60 * purifier_ach
   ventilation_cfm = room_size_cf / 60 * ventilation_ach
@@ -40,8 +41,11 @@ def simulate(purifier_ach=5,
 
   air = [0, 0, 0]
 
-  print ("\t".join([
-    "timestamp", "0.3-1μm", "1-3μm", "3-10μm", "total"]))
+  totals = []
+
+  if should_print:
+    print ("\t".join([
+      "timestamp", "0.3-1μm", "1-3μm", "3-10μm", "total"]))
 
   for timestep in range(duration):
     for particle_size in range(len(air)):
@@ -59,10 +63,57 @@ def simulate(purifier_ach=5,
       # particles settle
       air[particle_size] *= 1 - PARTICLE_DECAY_RATES[particle_size]
 
-    print("%s\t%s\t%.2f" % (
-      timestep,
-      "\t".join("%.2f" % x for x in air),
-      sum(air)))
+    if should_print:
+      print("%s\t%s\t%.2f" % (
+        timestep,
+        "\t".join("%.2f" % x for x in air),
+        sum(air)))
+
+    totals.append(sum(air))
+  return totals
+
+def simulate_multiple():
+  duration = 60
+  ventilation_ach = 2
+
+  baseline_risk = simulate(
+    purifier_ach=0,
+    ventilation_ach=ventilation_ach,
+    duration=duration,
+    purifier_filter='HEPA',
+    should_print=False)
+
+  columns = []
+  rows = [["timestamp", "no purifier"]]
+
+  for filter_name in FILTERS:
+    rows[0].append(filter_name)
+
+  for filter_name in FILTERS:
+    rows[0].append(filter_name)
+
+  for filter_name in FILTERS:
+    columns.append(simulate(
+      purifier_ach=5,
+      ventilation_ach=ventilation_ach,
+      duration=duration,
+      purifier_filter=filter_name,
+      should_print=False))
+
+  for i in range(duration):
+    rows.append([str(i)])
+
+  for i in range(duration):
+    rows[i+1].append("%.2f" % baseline_risk[i])
+
+    for j in range(len(columns)):
+      rows[i+1].append("%.2f" % columns[j][i])
+    for j in range(len(columns)):
+      rows[i+1].append("%.2f" % (columns[j][i] / baseline_risk[i]))
+
+  for row in rows:
+    print("\t".join(row))
 
 if __name__ == "__main__":
-  simulate()
+  #simulate()
+  simulate_multiple()
