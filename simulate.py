@@ -73,7 +73,7 @@ def simulate(purifier_ach=5,
   return totals
 
 def simulate_multiple():
-  duration = 60
+  duration = 60*8
   ventilation_ach = 2
 
   baseline_risk = simulate(
@@ -114,6 +114,45 @@ def simulate_multiple():
   for row in rows:
     print("\t".join(row))
 
+def simulate_equillibrium():
+  # x axis: ACH
+  # y axis: equillibrium reduction %
+  # columns: filter types
+
+  duration = 60*100 # easier than actually figuring out the equillibrium
+  ventilation_ach = 2
+
+  baseline_risk = simulate(
+    purifier_ach=0,
+    ventilation_ach=ventilation_ach,
+    duration=duration,
+    purifier_filter='HEPA', # ignored
+    should_print=False)[-1]
+
+  header = ["ach"]
+  for filter_name in FILTERS:
+    header.append(filter_name)
+
+  print("\t".join(header))
+
+  rows = []
+  for purifier_ach in range(25):
+    row = [str(purifier_ach)]
+    for filter_name in FILTERS:
+      filter_value = simulate(
+        purifier_ach=purifier_ach,
+        ventilation_ach=ventilation_ach,
+        duration=duration,
+        purifier_filter=filter_name,
+        should_print=False)[-1]
+      filter_reduction = filter_value / baseline_risk
+
+      row.append("%.6f" % filter_reduction)
+    print("\t".join(row))
+
+
+
 if __name__ == "__main__":
   #simulate()
-  simulate_multiple()
+  #simulate_multiple()
+  simulate_equillibrium()
