@@ -14,14 +14,23 @@ FILTERS={
 # https://www.jefftk.com/p/how-big-are-covid-particles
 VIRUS=[.20, .29, .51]
 
-# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7579175/
+# Following https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7579175/
+AIR_VISCOSITY=1.81e-5 # kg/(m*s)
+PARTICLE_DENSITY=1000 # kg/m3, same as water
+GRAVITY=9.81 # m/s2
+
+def half_life_minutes(diameter_microns):
+  diameter_m = diameter_microns * 1e-6
+  return 18 * AIR_VISCOSITY / (
+    diameter_m * diameter_m * PARTICLE_DENSITY * GRAVITY) / 60
+
 PARTICLE_HALF_LIVES = [
-  # 0.1-1, half life ~4hr
-  4*60,
-  # 1-3, half life ~20min
-  20,
-  # 3-10, half life ~5min
-  5]
+  # 0.1-1um
+  half_life_minutes(0.3),
+  # 1-3um
+  half_life_minutes(2),
+  # 3-10um
+  half_life_minutes(5)]
 
 PARTICLE_DECAY_RATES=[math.log(2) / half_life
                       for half_life in PARTICLE_HALF_LIVES]
@@ -73,7 +82,7 @@ def simulate(purifier_ach=5,
   return totals
 
 def simulate_multiple():
-  duration = 60*8
+  duration = 60
   ventilation_ach = 2
 
   baseline_risk = simulate(
